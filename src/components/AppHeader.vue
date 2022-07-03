@@ -50,6 +50,11 @@ export default {
   position: relative;
   width: 60%;
 
+  @media screen and (max-width: 992px) {
+    width: 100%;
+    margin-top: 1rem;
+  }
+
   input {
     background: #e4e7f4;
     border: none;

@@ -13,16 +13,17 @@ export default {
     };
   },
   mounted() {
-    if (this.currentContact) {
-      const contactToEdit = { ...this.currentContact };
-      this.name = contactToEdit.name;
-      this.email = contactToEdit.email;
-      this.phone = contactToEdit.phone;
-    }
+    this.setSelectedContact();
+  },
+  watch: {
+    selectedContact() {
+      this.setSelectedContact();
+    },
   },
   computed: {
     ...mapGetters({
-      currentContact: 'GET_CURRENT_CONTACT',
+      selectedContact: 'GET_SELECTED_CONTACT',
+      contacts: 'GET_CONTACTLIST',
     }),
     isSomeInputFilled() {
       return this.name !== '' || this.email !== '' || this.phone !== '';
@@ -31,18 +32,36 @@ export default {
   methods: {
     closeModal() {
       this.$store.commit('SET_IS_ADD_MODAL_OPENED', false);
-      this.$store.commit('SET_CURRENT_CONTACT', null);
+      this.$store.commit('SET_SELECTED_CONTACT', null);
     },
     saveContact() {
       const newContact = {
         name: this.name,
         email: this.email,
         phone: this.phone,
+        createdAt: new Date(),
       };
-      if (this.currentContact) {
-        newContact.id = this.currentContact.id;
+      if (this.selectedContact) {
+        newContact.id = this.selectedContact;
       }
       this.$store.commit('ADD_CONTACT', newContact);
+      this.name = '';
+      this.email = '';
+      this.phone = '';
+    },
+    setSelectedContact() {
+      if (this.selectedContact) {
+        const contactToEdit = this.contacts.find(
+          (contact) => contact.id === this.selectedContact,
+        );
+        this.name = contactToEdit.name;
+        this.email = contactToEdit.email;
+        this.phone = contactToEdit.phone;
+      } else {
+        this.name = '';
+        this.email = '';
+        this.phone = '';
+      }
     },
   },
 };
@@ -53,7 +72,7 @@ export default {
     <div class="modal-overlay" @click="closeModal"></div>
     <div class="modal-content">
       <div class="modal-header">
-        <h2 v-if="currentContact">Editar contato</h2>
+        <h2 v-if="selectedContact">Editar contato</h2>
         <h2 v-else>Criar novo contato</h2>
       </div>
       <form class="modal-form">

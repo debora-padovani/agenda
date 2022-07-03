@@ -37,6 +37,10 @@ export default {
 
     border-bottom: 1px solid #e1e1e1;
 
+    @media screen and (max-width: 767px) {
+      display: none;
+    }
+
     p {
       color: #9198af;
       font-size: 0.813rem;

@@ -10,7 +10,7 @@ const store = createStore({
         isDeleteModalOpened: false,
         idToDelete: null,
       },
-      currentContact: null,
+      selectedContact: null,
     };
   },
   getters: {
@@ -18,7 +18,7 @@ const store = createStore({
     GET_IS_CONTACTLIST_EMPTY: (state) => state.contactList.length === 0,
     GET_IS_ADD_MODAL_OPENED: (state) => state.isAddModalOpened,
     GET_DELETE_MODAL: (state) => state.deleteModal,
-    GET_CURRENT_CONTACT: (state) => state.currentContact,
+    GET_SELECTED_CONTACT: (state) => state.selectedContact,
   },
   mutations: {
     SET_CONTACTLIST: (state, contacts) => {
@@ -32,8 +32,8 @@ const store = createStore({
       state.deleteModal.isDeleteModalOpened = isOpened;
       state.deleteModal.idToDelete = idToDelete;
     },
-    SET_CURRENT_CONTACT: (state, contact) => {
-      state.currentContact = contact;
+    SET_SELECTED_CONTACT: (state, contact) => {
+      state.selectedContact = contact;
     },
     FILTER_CONTACT_LIST: (state, searchTerm) => {
       const filteredContactList = [...state.contactList];
@@ -43,8 +43,8 @@ const store = createStore({
     },
     // eslint-disable-next-line consistent-return
     ADD_CONTACT: async (state, contact) => {
-      const { currentContact } = state;
-      if (currentContact) return store.commit('UPDATE_CONTACT');
+      const { selectedContact } = state;
+      if (selectedContact) return store.commit('UPDATE_CONTACT', contact);
       const contactList = [...state.contactList];
       const newContact = { ...contact };
       newContact.highight = true;
@@ -62,10 +62,21 @@ const store = createStore({
         console.error('Tivemos problemas para adicionar o contato, tente novamente mais tarde!');
       }
     },
-    UPDATE_CONTACT: (state) => {
-      const updatingContact = state.currentContact;
-      db.contacts.put(updatingContact, updatingContact.id);
-      store.commit('SET_CURRENT_CONTACT', null);
+    UPDATE_CONTACT: (state, contact) => {
+      const updatingContact = {
+        name: contact.name,
+        email: contact.email,
+        phone: contact.phone,
+      };
+      const contactList = [...state.contactList];
+      const itemIndex = contactList.findIndex((item) => item.id === contact.id);
+      contactList[itemIndex].name = contact.name;
+      contactList[itemIndex].email = contact.email;
+      contactList[itemIndex].phone = contact.phone;
+      db.contacts.update(contact.id, updatingContact);
+      store.commit('SET_CONTACTLIST', contactList);
+      store.commit('SET_SELECTED_CONTACT', null);
+      store.commit('SET_IS_ADD_MODAL_OPENED', false);
     },
     DELETE_CONTACT: (state, id) => {
       const contactList = [...state.contactList];

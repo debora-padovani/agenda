@@ -2,20 +2,43 @@
 export default {
   name: 'ContactItem',
   props: ['contact'],
+  data() {
+    return {
+      isContactRecentlyAdded: false,
+    };
+  },
+  created() {
+    this.checkIfIsContactRecentlyAdded();
+    if (this.isContactRecentlyAdded) {
+      setTimeout(() => {
+        this.isContactRecentlyAdded = false;
+      }, 10000);
+    }
+  },
   methods: {
     randomDigit() {
       return Math.round(Math.random() * 255);
     },
     editContact() {
-      this.$store.commit('SET_CURRENT_CONTACT', this.contact);
+      this.$store.commit('SET_SELECTED_CONTACT', this.contact.id);
       this.$store.commit('SET_IS_ADD_MODAL_OPENED', true);
     },
     deleteContact() {
-      console.log('deleteContact', this.contact.id);
       this.$store.commit('SET_DELETE_MODAL', {
         isOpened: true,
         idToDelete: this.contact.id,
       });
+    },
+    checkIfIsContactRecentlyAdded() {
+      const { createdAt } = this.contact;
+      if (createdAt) {
+        const timeDifference = (
+          new Date().getTime() - createdAt.getTime()
+        ) / 1000;
+        this.isContactRecentlyAdded = timeDifference < 10;
+      } else {
+        this.isContactRecentlyAdded = false;
+      }
     },
   },
   computed: {
@@ -30,10 +53,7 @@ export default {
 </script>
 
 <template>
-  <div :class="[
-    'contactlist-item',
-    contact.highlight ? 'highlight' : '',
-  ]">
+  <div :class="['contactlist-item', isContactRecentlyAdded ? 'highlight' : '']">
     <span :style="randomBackground">{{ contact.name.substring(0, 1) }}</span>
     <p>{{ contact.name }}</p>
     <p>{{ contact.email }}</p>
@@ -58,7 +78,14 @@ export default {
   grid-template-columns: 10% 20% 40% 20% 10%;
   align-items: center;
 
-  &:hover {
+  @media screen and (max-width: 767px) {
+    grid-template-columns: 100%;
+    padding: 0.25rem 0.75rem;
+    width: auto;
+  }
+
+  &:hover,
+  &.highlight {
     background: #fff3f2;
   }
 
@@ -90,6 +117,12 @@ export default {
     justify-content: flex-end;
     align-items: center;
     gap: 0.5rem;
+
+    @media screen and (max-width: 767px) {
+      gap: 1.5rem;
+      order: -1;
+      margin-top: 1rem;
+    }
   }
   button {
     background: none;
